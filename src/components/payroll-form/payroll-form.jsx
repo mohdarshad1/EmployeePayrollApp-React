@@ -1,4 +1,5 @@
-import React, { useState, userEffect } from 'react';
+import React, { useState, useEffect } from 'react';
+import UtilityService from '../../services/utility-service';
 import profile1 from '../../assets/profile-images/Ellipse -3.png';
 import profile2 from '../../assets/profile-images/Ellipse -4.png';
 import profile3 from '../../assets/profile-images/Ellipse -5.png';
@@ -7,13 +8,14 @@ import profile5 from '../../assets/profile-images/Ellipse -2.png';
 import profile6 from '../../assets/profile-images/Ellipse -1.png';
 import './payroll-form.css';
 import logo from '../../assets/images/logo.png';
-import { userParams, Link, withRouter } from 'react-router-dom';
+import { useParams, Link, withRouter} from 'react-router-dom';
 import EmployeeService from '../../services/employee-service';
 
 const initialState = {
   name: '',
   profilePicture: '',
   gender: '',
+  allDepartments: ['HR', 'Sales', 'Finance', 'Engineer', 'Others'],
   departments: [],    
   salary: 40000,
   day: '1',
@@ -41,6 +43,7 @@ const initialState = {
     startDate: ''
   }
 }
+
 class PayrollForm extends React.Component {
   constructor(props) {
     super(props)
@@ -48,6 +51,7 @@ class PayrollForm extends React.Component {
       name: '',
       profilePicture: '',
       gender: '',
+      allDepartments: ['HR', 'Sales', 'Finance', 'Engineer', 'Others'],
       departments: [],    
       salary: 40000,
       day: '1',
@@ -84,8 +88,41 @@ class PayrollForm extends React.Component {
     this.monthChangeHandler = this.monthChangeHandler.bind(this);
     this.yearChangeHandler = this.yearChangeHandler.bind(this);
     this.noteChangeHandler = this.noteChangeHandler.bind(this);
+  }  
+
+  componentDidMount = () => {
+    let id = this.props.match.params.id;
+    if(id !== undefined && id!=='') {
+      this.getEmployeeById(id);
+    }
   }
 
+  getEmployeeById = (id) => {
+    new EmployeeService().getEmployeeById(id)
+    .then(responseData => {
+      this.setEmployeeData(responseData.data);
+    }).catch(error => {
+      console.log("Error while fetching employee data by ID :\n" + JSON.stringify(error));
+    })
+  }
+  setEmployeeData = (employee) => {
+    let dateArray = new UtilityService().stringifyDate(employee.startDate).split(" ");
+    let employeeDay = (dateArray[0].length === 1) ? '0' + dateArray[0] : dateArray[0];
+    this.setState({
+      id: employee.id,
+      name: employee.name,
+      profilePicture: employee.profilePicture,
+      gender: employee.gender,
+      departments: employee.departments,
+      salary: employee.salary,      
+      day: employeeDay,      
+      month: dateArray[1],      
+      year: dateArray[2],
+      note: employee.note,
+      isUpdate: true
+    });
+  }
+  
   nameChangeHandler = (event) => {
     this.setState({name: event.target.value});
     this.checkName(event.target.value);
@@ -191,6 +228,9 @@ class PayrollForm extends React.Component {
       this.initializeMessage('department', '', '✓');
     }
   }
+  getChecked = (name) => {
+    return this.state.departments.includes(name);
+  }
   checkGender = (genderValue) => {
     if(genderValue.length === 0) {
       this.initializeMessage('gender', 'Gender is a Required Field!', '');
@@ -235,12 +275,25 @@ class PayrollForm extends React.Component {
         startDate: this.state.startDate,
         note: this.state.note
       }
-      new EmployeeService().addEmployee(employeeObject)
-      .then(responseText => {
-        alert("Employee Added Successfully!!!\n" + JSON.stringify(responseText.data));
-      }).catch(error => {
-        console.log("Error while adding Employee!!!\n" + JSON.stringify(error));
-      })
+      if(this.state.isUpdate) {
+        new EmployeeService().updateEmployee(employeeObject)
+        .then(responseText => {
+          alert("Employee Updated Successfully!!!\n" + JSON.stringify(responseText.data));
+          this.reset();
+          this.props.history.push("/home");
+        }).catch(error => {
+          console.log("Error while updating Employee!!!\n" + JSON.stringify(error));
+        })
+      } else {
+        new EmployeeService().addEmployee(employeeObject)
+        .then(responseText => {
+          alert("Employee Added Successfully!!!\n" + JSON.stringify(responseText.data));
+          this.reset();
+          this.props.history.push("/home");
+        }).catch(error => {
+          console.log("Error while adding Employee!!!\n" + JSON.stringify(error));
+        })
+      }
       this.reset();
     }
   }
@@ -322,27 +375,16 @@ class PayrollForm extends React.Component {
             </div>
             <div className="row-content">
               <label className="label text" htmlFor="department">Department</label>
-              <div>            
-                <label>
-                    <input class="checkbox" type="checkbox" id="hr" name="department" value="HR" onChange={this.departmentChangeHandler} />
-                    <label class="text" for="hr">HR</label>
-                </label>
-                <label>
-                    <input class="checkbox" type="checkbox" id="sales" name="department" value="Sales" onChange={this.departmentChangeHandler} />
-                    <label class="text" for="sales">Sales</label>
-                </label>
-                <label>
-                    <input class="checkbox" type="checkbox" id="finance" name="department" value="Finance" onChange={this.departmentChangeHandler} />
-                    <label class="text" for="finance">Finance</label>
-                </label>
-                <label>
-                    <input class="checkbox" type="checkbox" id="engineer" name="department" value="Engineer" onChange={this.departmentChangeHandler} />
-                    <label class="text" for="engineer">Engineer</label>
-                </label>
-                <label>
-                    <input class="checkbox" type="checkbox" id="others" name="department" value="Others" onChange={this.departmentChangeHandler} />
-                    <label class="text" for="others">Others</label>
-                </label>
+              <div>
+                {this.state.allDepartments.map(item => (
+                  <span key={item}>
+                    <label>
+                      <input className="checkbox" type="checkbox" onChange={this.departmentChangeHandler} name={item}
+                          checked={this.getChecked(item)} value={item} />
+                      <label className="text" htmlFor={item}>{item}</label>
+                    </label>
+                  </span>
+                ))}
               </div>
               <valid-message className="valid-department" htmlFor="department">{this.state.valid.department}</valid-message>
               <error-output className="department-error" htmlFor="department">{this.state.error.department}</error-output>
@@ -417,7 +459,7 @@ class PayrollForm extends React.Component {
             </div>
             <div className="row-content">
               <label className="label text" htmlFor="note">Notes</label>
-              <textarea className="input" onChange={this.noteChangeHandler} value={this.state.note} id="note" name="note" placeholder="Write a note..." style={{height:'100px'}}></textarea>
+              <textarea className="input" onChange={this.noteChangeHandler} value={this.state.note} id="note" name="note" placeholder="Write a note..." style={{height:'100px', margin: '25px 0 0 0'}}></textarea>
             </div>
             <div className="buttonParent">
               <Link to='' className="resetButton button cancelButton">Cancel</Link>

@@ -37,6 +37,7 @@
   letter-spacing: 0px;
   color: #82a70c;
   text-transform: capitalize;
+  margin-left: 4px;
 }
 
 .emp-payroll {
@@ -63,7 +64,8 @@
   align-items: center;
   width: 80%;
   margin: 0 auto;
-  padding: 25px;
+  padding-top: 25px;
+  padding-bottom: 25px;
 }
 
 .heading {
@@ -71,6 +73,8 @@
   letter-spacing: 0px;
   color: #42515f;
   opacity: 1;
+  display: flex;
+  flex-direction: row;
 }
 
 .emp-count {
@@ -81,6 +85,7 @@
   width: 26px;
   text-align: center;
   display: inline-block;
+  margin-left: 2px;
 }
 .search-box {
   position: relative;
@@ -131,6 +136,7 @@
   outline: none;
   cursor: pointer;
   text-decoration: none;
+  display: flex;
 }
 
 .table-main {
