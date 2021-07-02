@@ -11,9 +11,7 @@ function App() {
     <div className="App">
       <Router>
         <Switch>
-          <Route exact path = "">
-            <PayrollForm />
-          </Route>
+          <Route path = ""><PayrollForm/></Route>
         </Switch>
       </Router>
     </div>
