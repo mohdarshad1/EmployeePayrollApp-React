@@ -22,7 +22,7 @@ const initialState = {
   month: 'Jan',
   year: '2020',
   startDate: new Date("1 Jan 2020"),
-  note: '',
+  notes: '',
 
   id: '',      
   isUpdate: false,
@@ -58,7 +58,7 @@ class PayrollForm extends React.Component {
       month: 'Jan',
       year: '2020',
       startDate: new Date("1 Jan 2020"),
-      note: '',
+      notes: '',
 
       id: '',      
       isUpdate: false,
@@ -99,7 +99,8 @@ class PayrollForm extends React.Component {
 
   getEmployeeById = (id) => {
     new EmployeeService().getEmployeeById(id)
-    .then(responseData => {
+    .then(responseDTO => {
+      let responseData = responseDTO.data;
       this.setEmployeeData(responseData.data);
     }).catch(error => {
       console.log("Error while fetching employee data by ID :\n" + JSON.stringify(error));
@@ -118,11 +119,11 @@ class PayrollForm extends React.Component {
       day: employeeDay,      
       month: dateArray[1],      
       year: dateArray[2],
-      note: employee.note,
+      notes: employee.notes,
       isUpdate: true
     });
   }
-  
+
   nameChangeHandler = (event) => {
     this.setState({name: event.target.value});
     this.checkName(event.target.value);
@@ -168,7 +169,7 @@ class PayrollForm extends React.Component {
     this.setStartDate(this.state.day, this.state.month, event.target.value);
   }
   noteChangeHandler = (event) => {
-    this.setState({note: event.target.value});
+    this.setState({notes: event.target.value});
   }
   
   setStartDate = (day, month, year) => {
@@ -273,7 +274,7 @@ class PayrollForm extends React.Component {
         departments: this.state.departments,
         salary: this.state.salary,
         startDate: this.state.startDate,
-        note: this.state.note
+        notes: this.state.notes
       }
       if(this.state.isUpdate) {
         new EmployeeService().updateEmployee(employeeObject)
@@ -458,8 +459,8 @@ class PayrollForm extends React.Component {
               <error-output className="startDate-error" htmlFor="startDate">{this.state.error.startDate}</error-output>
             </div>
             <div className="row-content">
-              <label className="label text" htmlFor="note">Notes</label>
-              <textarea className="input" onChange={this.noteChangeHandler} value={this.state.note} id="note" name="note" placeholder="Write a note..." style={{height:'100px', margin: '25px 0 0 0'}}></textarea>
+              <label className="label text" htmlFor="notes">Notes</label>
+              <textarea className="input" onChange={this.noteChangeHandler} value={this.state.notes} id="notes" name="notes" placeholder="Write a note..." style={{height:'100px', margin: '25px 0 0 0'}}></textarea>
             </div>
             <div className="buttonParent">
               <Link to='' className="resetButton button cancelButton">Cancel</Link>
